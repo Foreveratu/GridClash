@@ -210,22 +210,8 @@ class GameState extends ChangeNotifier {
             selectedCell.state = _playerToCellState(currentPlayer);
           }
 
-          // Get all cells owned by the current player (including temporarily selected)
-          final allCurrentPlayerCells = grid
-              .expand((row) => row)
-              .where((cell) => cell.state == _playerToCellState(currentPlayer))
-              .toSet();
-
           // Get all cells connected to the current player's base
           final connectedCurrentPlayerCells = _getConnectedCells(currentPlayer);
-
-          // Determine which cells are now connected and which are still disconnected
-          Set<Cell> nowConnectedCells = allCurrentPlayerCells.intersection(
-            connectedCurrentPlayerCells,
-          );
-          Set<Cell> stillDisconnectedCells = allCurrentPlayerCells.difference(
-            connectedCurrentPlayerCells,
-          );
 
           // Update accessibility based on the immediate check
           for (var playerCell in allCurrentPlayerCellsBeforeSelection) {
@@ -233,24 +219,6 @@ class GameState extends ChangeNotifier {
               playerCell,
             );
           }
-
-          notifyListeners();
-
-          // Log connectivity check results with player prefix
-          /*developer.log(
-            'Immediate Connectivity Check Results for Player ${currentPlayer.id}:',
-          );
-          developer.log(
-            'Total owned cells (including selected): ${allCurrentPlayerCells.length}',
-          );
-          developer.log('Now Connected cells: ${nowConnectedCells.length}');
-          developer.log(
-            'Still Disconnected cells: ${stillDisconnectedCells.length}',
-          );
-          developer.log(
-            'Still Disconnected Cells Coords: ${stillDisconnectedCells.map((c) => '(${c.row}, ${c.col})').join(', ')}',
-          );
-          developer.log('----------------------------------------');*/
 
           // *** End Immediate Connectivity Check ***
           notifyListeners(); // Notify listeners to reflect immediate accessibility changes
@@ -322,34 +290,12 @@ class GameState extends ChangeNotifier {
             opponentPlayer,
           );
 
-          // Determine which cells are now connected and which are still disconnected for the opponent
-          Set<Cell> nowConnectedOpponentCells = allOpponentPlayerCells
-              .intersection(connectedOpponentPlayerCells);
-          Set<Cell> stillDisconnectedOpponentCells = allOpponentPlayerCells
-              .difference(connectedOpponentPlayerCells);
-
           // Update accessibility based on the immediate check for the opponent
           for (var opponentCell in allOpponentPlayerCells) {
             opponentCell.isAccessible = connectedOpponentPlayerCells.contains(
               opponentCell,
             );
           }
-
-          // Log connectivity check results with player prefix for the opponent
-          /*developer.log(
-            'Immediate Connectivity Check Results for Player ${opponentPlayer.id}:',
-          );
-          developer.log('Total owned cells: ${allOpponentPlayerCells.length}');
-          developer.log(
-            'Now Connected cells: ${nowConnectedOpponentCells.length}',
-          );
-          developer.log(
-            'Still Disconnected cells: ${stillDisconnectedOpponentCells.length}',
-          );
-          developer.log(
-            'Still Disconnected Cells Coords: ${stillDisconnectedOpponentCells.map((c) => '(${c.row}, ${c.col})').join(', ')}',
-          );
-          developer.log('----------------------------------------');*/
 
           // *** End Immediate Connectivity Check for the opponent player ***
 
@@ -406,6 +352,31 @@ class GameState extends ChangeNotifier {
         'Cell ($row, ${cell.col}) validation failed. State: ${cell.state}, In Selected: ${selectedCells.contains(cell)}, Adjacent Owned: ${_isAdjacentToOwned(row, col)}',
       ); // Debug print - More details
     }
+  }
+
+  // Resets the game state for a new game
+  void replayGame() {
+    // Reset grid
+    grid = List.generate(
+      gridSize,
+      (row) => List.generate(gridSize, (col) => Cell(row: row, col: col)),
+    );
+
+    // Reset bases
+    player1Base.clear(); // Clear existing base cell references
+    player2Base.clear();
+    initializeBases(); // Re-initialize bases on the new grid
+
+    // Reset turn state
+    selectedCells.clear();
+    attemptedCaptureCells.clear();
+    currentPlayer = players[0]; // Player 1 starts again
+
+    // Reset win state
+    winningPlayer = null;
+    isGameOver = false;
+
+    notifyListeners(); // Notify listeners to reset the UI
   }
 
   // Helper to get all cells connected to a player's base using BFS

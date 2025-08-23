@@ -157,8 +157,8 @@ class MyHomePage extends StatelessWidget {
                   ElevatedButton(
                     // Bouton Replay
                     onPressed: () {
-                      // TODO: Implement replay logic in GameState
-                      // gameState.replayGame(); // Appeler la méthode replay (à créer)
+                      gameState
+                          .replayGame(); // Appeler la méthode replay (à créer)
                     },
                     child: const Text('Rejouer'),
                   ),
