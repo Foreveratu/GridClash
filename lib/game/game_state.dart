@@ -93,6 +93,16 @@ class GameState extends ChangeNotifier {
         }
       }
     }
+
+    developer.log('Player 1 Base Cells:');
+    for (var cell in player1Base) {
+      developer.log('  (${cell.row}, ${cell.col})');
+    }
+    developer.log('Player 2 Base Cells:');
+    for (var cell in player2Base) {
+      developer.log('  (${cell.row}, ${cell.col})');
+    }
+
     notifyListeners(); // Notify listeners that the grid has changed
   }
 
@@ -185,34 +195,6 @@ class GameState extends ChangeNotifier {
 
         notifyListeners(); // Notify listeners to update UI with temporary selection (cross)
 
-        // Determine the opponent player
-        final opponentPlayer = (currentPlayer.id == 1)
-            ? players[1]
-            : players[0];
-        final opponentBase = (opponentPlayer.id == 1)
-            ? player1Base
-            : player2Base;
-
-        // Check if all opponent's base cells belong to the current player
-        bool currentPlayerWins = true;
-        for (var baseCell in opponentBase) {
-          if (baseCell.state != _playerToCellState(currentPlayer)) {
-            currentPlayerWins = false;
-            break; // No need to check further, not all base cells are captured
-          }
-        }
-
-        if (currentPlayerWins) {
-          // Handle win condition (e.g., display message, stop game)
-          developer.log('Player ${currentPlayer.id} WINS!');
-          winningPlayer = currentPlayer; // Set the winning player
-          isGameOver = true; // Mark the game as over
-          // TODO: Implement actual win handling (e.g., state variable, dialog)
-          // Si le jeu est terminé, on arrête le traitement de ce tour
-          notifyListeners(); // Notify listeners for the game over state change
-          return; // Sortir de la méthode selectCell
-        }
-
         // *** Immediate Connectivity Check for the current player ***
         WidgetsBinding.instance.addPostFrameCallback((_) {
           // Get all cells owned by the current player BEFORE temporarily changing selectedCells
@@ -254,13 +236,8 @@ class GameState extends ChangeNotifier {
 
           notifyListeners();
 
-          // Restore original states of selected cells
-          for (int i = 0; i < selectedCells.length; i++) {
-            selectedCells[i].state = originalStates[i];
-          }
-
           // Log connectivity check results with player prefix
-          developer.log(
+          /*developer.log(
             'Immediate Connectivity Check Results for Player ${currentPlayer.id}:',
           );
           developer.log(
@@ -273,15 +250,63 @@ class GameState extends ChangeNotifier {
           developer.log(
             'Still Disconnected Cells Coords: ${stillDisconnectedCells.map((c) => '(${c.row}, ${c.col})').join(', ')}',
           );
-          developer.log('----------------------------------------');
+          developer.log('----------------------------------------');*/
 
           // *** End Immediate Connectivity Check ***
           notifyListeners(); // Notify listeners to reflect immediate accessibility changes
+
+          // Determine the opponent player
+          final opponentPlayer = (currentPlayer.id == 1)
+              ? players[1]
+              : players[0];
+          final opponentBase = (opponentPlayer.id == 1)
+              ? player1Base
+              : player2Base;
+
+          // Log the state of each opponent base cell before checking victory
+          developer.log('Checking opponent base cells for victory:');
+          for (var baseCell in opponentBase) {
+            developer.log(
+              '  Base Cell (${baseCell.row}, ${baseCell.col}): State = ${baseCell.state}, isBase = ${baseCell.isBase}',
+            );
+          }
+
+          // Check if all opponent's base cells belong to the current player
+          bool currentPlayerWins = true;
+
+          for (var baseCell in opponentBase) {
+            if (baseCell.state != _playerToCellState(currentPlayer)) {
+              currentPlayerWins = false;
+              break; // No need to check further, not all base cells are captured
+            }
+          }
+
+          if (currentPlayerWins) {
+            // Handle win condition (e.g., display message, stop game)
+            developer.log('Player ${currentPlayer.id} WINS!');
+            winningPlayer = currentPlayer; // Set the winning player
+            isGameOver = true; // Mark the game as over
+            // TODO: Implement actual win handling (e.g., state variable, dialog)
+            // Si le jeu est terminé, on arrête le traitement de ce tour
+            notifyListeners(); // Notify listeners for the game over state change
+            return; // Sortir de la méthode selectCell
+          }
+
+          // Restore original states of selected cells
+          for (int i = 0; i < selectedCells.length; i++) {
+            selectedCells[i].state = originalStates[i];
+          }
+
+          notifyListeners();
         });
 
-        // *** Immediate Connectivity Check for the current player ***
+        // If the game is over, stop processing this turn
+        if (isGameOver) {
+          return; // Exit selectCell
+        }
+
+        // *** Immediate Connectivity Check for the opponent player ***
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          // *** Immediate Connectivity Check for the opponent player ***
           final opponentPlayer = (currentPlayer.id == 1)
               ? players[1]
               : players[0];
@@ -311,7 +336,7 @@ class GameState extends ChangeNotifier {
           }
 
           // Log connectivity check results with player prefix for the opponent
-          developer.log(
+          /*developer.log(
             'Immediate Connectivity Check Results for Player ${opponentPlayer.id}:',
           );
           developer.log('Total owned cells: ${allOpponentPlayerCells.length}');
@@ -324,7 +349,7 @@ class GameState extends ChangeNotifier {
           developer.log(
             'Still Disconnected Cells Coords: ${stillDisconnectedOpponentCells.map((c) => '(${c.row}, ${c.col})').join(', ')}',
           );
-          developer.log('----------------------------------------');
+          developer.log('----------------------------------------');*/
 
           // *** End Immediate Connectivity Check for the opponent player ***
 
@@ -350,6 +375,14 @@ class GameState extends ChangeNotifier {
             selectedCell.state = _playerToCellState(
               currentPlayer,
             ); // Set cell state to current player
+          }
+
+          // Log the state of selected cells after applying changes
+          developer.log('State of selected cells after applying changes:');
+          for (var selectedCell in selectedCells) {
+            developer.log(
+              '  Selected Cell (${selectedCell.row}, ${selectedCell.col}): State = ${selectedCell.state}, isBase = ${selectedCell.isBase}, isPermanentlyAcquired = ${selectedCell.isPermanentlyAcquired}',
+            );
           }
 
           selectedCells.clear(); // Clear selected cells for the next turn
