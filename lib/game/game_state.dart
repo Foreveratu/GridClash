@@ -254,7 +254,6 @@ class GameState extends ChangeNotifier {
             developer.log('Player ${currentPlayer.id} WINS!');
             winningPlayer = currentPlayer; // Set the winning player
             isGameOver = true; // Mark the game as over
-            // TODO: Implement actual win handling (e.g., state variable, dialog)
             // Si le jeu est terminé, on arrête le traitement de ce tour
             notifyListeners(); // Notify listeners for the game over state change
             return; // Sortir de la méthode selectCell
