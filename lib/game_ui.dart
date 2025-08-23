@@ -18,13 +18,44 @@ class GameUI extends StatelessWidget {
         return Column(
           // Utiliser un Column pour empiler les éléments
           children: [
-            Text('Joueur actuel: ${gameState.currentPlayer.id}'),
-
+            Text(
+              'Joueur actuel: ${gameState.currentPlayer.id}',
+              style: TextStyle(
+                color: gameState
+                    .currentPlayer
+                    .color, // Utiliser la couleur du joueur actuel
+                fontWeight: FontWeight
+                    .bold, // Optionnel: rendre le texte en gras pour plus de visibilité
+                fontSize: 18.0, // Optionnel: ajuster la taille si nécessaire
+              ),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Text('Score Joueur 1: ${gameState.player1Score}'),
-                Text('Score Joueur 2: ${gameState.player2Score}'),
+                Text(
+                  'Score Joueur 1: ${gameState.player1Score}',
+                  style: TextStyle(
+                    color: gameState
+                        .players[0]
+                        .color, // Utiliser la couleur du joueur actuel
+                    fontWeight: FontWeight
+                        .bold, // Optionnel: rendre le texte en gras pour plus de visibilité
+                    fontSize:
+                        18.0, // Optionnel: ajuster la taille si nécessaire
+                  ),
+                ),
+                Text(
+                  'Score Joueur 2: ${gameState.player2Score}',
+                  style: TextStyle(
+                    color: gameState
+                        .players[1]
+                        .color, // Utiliser la couleur du joueur actuel
+                    fontWeight: FontWeight
+                        .bold, // Optionnel: rendre le texte en gras pour plus de visibilité
+                    fontSize:
+                        18.0, // Optionnel: ajuster la taille si nécessaire
+                  ),
+                ),
               ],
             ),
             Expanded(
