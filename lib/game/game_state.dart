@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 // We might need collection later for Set.difference, uncomment if analyze complains.
 import 'dart:developer' as developer;
 import 'dart:math';
+import 'dart:collection';
 
 enum CellState { empty, player1, player2 }
 
@@ -434,7 +435,7 @@ class GameState extends ChangeNotifier {
   // Helper to get all cells connected to a player's base using BFS
   Set<Cell> getConnectedCells(Player player) {
     final connectedCells = <Cell>{};
-    final queue = <Cell>[];
+    final queue = Queue<Cell>();
     final visited = <Cell>{};
 
     final playerState = _playerToCellState(player);
@@ -445,7 +446,9 @@ class GameState extends ChangeNotifier {
       for (var col = 0; col < gridSize; col++) {
         final cell = grid[row][col];
         // Include base cells AND selected cells (if checking current player) as starting points
-        if (cell.state == playerState && cell.isBase) {
+        if (cell.state == playerState &&
+            cell.isBase &&
+            !cell.isPermanentlyAcquired) {
           // Always start from bases
           if (!visited.contains(cell)) {
             queue.add(cell);
@@ -468,9 +471,7 @@ class GameState extends ChangeNotifier {
     ];
 
     while (queue.isNotEmpty) {
-      final currentCell = queue.removeAt(
-        0,
-      ); // Use removeAt(0) for List as a queue
+      final currentCell = queue.removeFirst();
 
       for (var offset in adjacentOffsets) {
         final adjacentRow = currentCell.row + offset[0];
