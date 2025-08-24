@@ -67,7 +67,7 @@ class GameState extends ChangeNotifier {
     currentPlayer = players[0];
   }
 
-void initializeBases() {
+  void initializeBases() {
     final random = Random();
     player1Base.clear(); // Clear existing base cells
     player2Base.clear();
@@ -134,8 +134,10 @@ void initializeBases() {
       // Additionally, check for overlap with Player 1's base
       bool overlapsWithPlayer1 = false;
       for (var p1BaseCell in player1Base) {
-        if (p1BaseCell.row >= startRow && p1BaseCell.row < startRow + 3 &&
-            p1BaseCell.col >= startCol && p1BaseCell.col < startCol + 3) {
+        if (p1BaseCell.row >= startRow &&
+            p1BaseCell.row < startRow + 3 &&
+            p1BaseCell.col >= startCol &&
+            p1BaseCell.col < startCol + 3) {
           overlapsWithPlayer1 = true;
           break;
         }
@@ -156,7 +158,6 @@ void initializeBases() {
 
     notifyListeners(); // Notify listeners that the grid has changed
   }
-
 
   // Helper to check if a cell is adjacent to a cell owned by the current player or in selectedCells
   bool _isAdjacentToOwned(int row, int col) {
@@ -263,7 +264,7 @@ void initializeBases() {
           }
 
           // Get all cells connected to the current player's base
-          final connectedCurrentPlayerCells = _getConnectedCells(currentPlayer);
+          final connectedCurrentPlayerCells = getConnectedCells(currentPlayer);
 
           // Update accessibility based on the immediate check
           for (var playerCell in allCurrentPlayerCellsBeforeSelection) {
@@ -337,7 +338,7 @@ void initializeBases() {
               .toSet();
 
           // Get all cells connected to the opponent player's base
-          final connectedOpponentPlayerCells = _getConnectedCells(
+          final connectedOpponentPlayerCells = getConnectedCells(
             opponentPlayer,
           );
 
@@ -431,7 +432,7 @@ void initializeBases() {
   }
 
   // Helper to get all cells connected to a player's base using BFS
-  Set<Cell> _getConnectedCells(Player player) {
+  Set<Cell> getConnectedCells(Player player) {
     final connectedCells = <Cell>{};
     final queue = <Cell>[];
     final visited = <Cell>{};
