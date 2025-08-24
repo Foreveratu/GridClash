@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 // We might need collection later for Set.difference, uncomment if analyze complains.
 import 'dart:developer' as developer;
-// import 'package:collection/collection.dart';
+import 'dart:math';
 
 enum CellState { empty, player1, player2 }
 
@@ -67,44 +67,96 @@ class GameState extends ChangeNotifier {
     currentPlayer = players[0];
   }
 
-  void initializeBases() {
-    // Player 1 base (bottom-left)
-    for (int i = 0; i < 3; i++) {
-      for (int j = 0; j < 3; j++) {
-        final row = gridSize - 3 + i;
-        final col = j;
-        if (row >= 0 && row < gridSize && col >= 0 && col < gridSize) {
-          grid[row][col].state = CellState.player1;
-          grid[row][col].isBase = true; // Mark as base cell
-          player1Base.add(grid[row][col]); // Add to base list
-        }
+void initializeBases() {
+    final random = Random();
+    player1Base.clear(); // Clear existing base cells
+    player2Base.clear();
+
+    // Reset all cells to empty and not base/acquired
+    for (int row = 0; row < gridSize; row++) {
+      for (int col = 0; col < gridSize; col++) {
+        grid[row][col].state = CellState.empty;
+        grid[row][col].isBase = false;
+        grid[row][col].isPermanentlyAcquired = false;
+        grid[row][col].isAccessible = true; // Reset accessibility
       }
     }
 
-    // Player 2 base (top-right)
-    for (int i = 0; i < 3; i++) {
-      for (int j = 0; j < 3; j++) {
-        final row = i;
-        final col = gridSize - 3 + j;
-        if (row >= 0 && row < gridSize && col >= 0 && col < gridSize) {
-          grid[row][col].state = CellState.player2;
-          grid[row][col].isBase = true; // Mark as base cell
-          player2Base.add(grid[row][col]); // Add to base list
+    // Find random 3x3 base for Player 1
+    bool player1BasePlaced = false;
+    while (!player1BasePlaced) {
+      final startRow = random.nextInt(gridSize - 2); // Ensure 3x3 fits
+      final startCol = random.nextInt(gridSize - 2);
+
+      bool areaIsEmpty = true;
+      for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+          if (grid[startRow + i][startCol + j].state != CellState.empty) {
+            areaIsEmpty = false;
+            break;
+          }
         }
+        if (!areaIsEmpty) break;
+      }
+
+      if (areaIsEmpty) {
+        for (int i = 0; i < 3; i++) {
+          for (int j = 0; j < 3; j++) {
+            final cell = grid[startRow + i][startCol + j];
+            cell.state = CellState.player1;
+            cell.isBase = true;
+            player1Base.add(cell);
+          }
+        }
+        player1BasePlaced = true;
       }
     }
 
-    developer.log('Player 1 Base Cells:');
-    for (var cell in player1Base) {
-      developer.log('  (${cell.row}, ${cell.col})');
-    }
-    developer.log('Player 2 Base Cells:');
-    for (var cell in player2Base) {
-      developer.log('  (${cell.row}, ${cell.col})');
+    // Find random 3x3 base for Player 2 (ensure it doesn't overlap with Player 1's base)
+    bool player2BasePlaced = false;
+    while (!player2BasePlaced) {
+      final startRow = random.nextInt(gridSize - 2);
+      final startCol = random.nextInt(gridSize - 2);
+
+      bool areaIsEmpty = true;
+      for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+          final cell = grid[startRow + i][startCol + j];
+          // Check if the cell is empty OR if it belongs to Player 2 (should be empty at this point)
+          if (cell.state != CellState.empty) {
+            areaIsEmpty = false;
+            break;
+          }
+        }
+        if (!areaIsEmpty) break;
+      }
+
+      // Additionally, check for overlap with Player 1's base
+      bool overlapsWithPlayer1 = false;
+      for (var p1BaseCell in player1Base) {
+        if (p1BaseCell.row >= startRow && p1BaseCell.row < startRow + 3 &&
+            p1BaseCell.col >= startCol && p1BaseCell.col < startCol + 3) {
+          overlapsWithPlayer1 = true;
+          break;
+        }
+      }
+
+      if (areaIsEmpty && !overlapsWithPlayer1) {
+        for (int i = 0; i < 3; i++) {
+          for (int j = 0; j < 3; j++) {
+            final cell = grid[startRow + i][startCol + j];
+            cell.state = CellState.player2;
+            cell.isBase = true;
+            player2Base.add(cell);
+          }
+        }
+        player2BasePlaced = true;
+      }
     }
 
     notifyListeners(); // Notify listeners that the grid has changed
   }
+
 
   // Helper to check if a cell is adjacent to a cell owned by the current player or in selectedCells
   bool _isAdjacentToOwned(int row, int col) {
@@ -471,6 +523,4 @@ class GameState extends ChangeNotifier {
     }
     return count;
   }
-
-  // TODO: Add Win Condition Check logic
 } // End of GameState class
