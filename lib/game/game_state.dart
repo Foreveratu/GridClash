@@ -37,7 +37,7 @@ class Player {
 }
 
 class GameState extends ChangeNotifier {
-  final int gridSize = 25;
+  final int gridSize = 15;
   late List<List<Cell>> grid;
   late Player currentPlayer;
   late List<Player> players;
