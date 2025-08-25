@@ -45,6 +45,7 @@ class GameGrid extends StatelessWidget {
               );
             }
 
+            final double cellSize = MediaQuery.of(context).size.width / gameState.gridSize;
             return GestureDetector(
               onTap: () {
                 gameState.selectCell(row, col);
@@ -71,7 +72,7 @@ class GameGrid extends StatelessWidget {
                       child: Icon(
                         Icons.close,
                         color: gameState.currentPlayer.color, // Ou Colors.white
-                        size: 25.0, // Ou la taille appropriée
+ size: cellSize * 0.6, // Ou la taille appropriée
                       ),
                     )
                   // Show black circle for permanently acquired cells (bases included if permanently acquired)
@@ -80,7 +81,7 @@ class GameGrid extends StatelessWidget {
                       child: Icon(
                         Icons.circle,
                         color: Colors.black, // Cercle noir
-                        size: 20.0, // Taille appropriée
+ size: cellSize * 0.6, // Taille appropriée
                       ),
                     )
                   // Show black cross for base cells that still belong to the original player
@@ -90,7 +91,7 @@ class GameGrid extends StatelessWidget {
                         Icons.close,
                         color: Colors
                             .black, // Croix noire pour bases non capturées
-                        size: 25.0, // Taille appropriée
+ size: cellSize * 0.6, // Taille appropriée
                       ),
                     )
                   // Show colored cross for other acquired cells (not base, not permanently acquired)
@@ -99,7 +100,7 @@ class GameGrid extends StatelessWidget {
                       child: Icon(
                         Icons.close,
                         color: Colors.white,
-                        size: 25.0, // Taille appropriée
+ size: cellSize * 0.6, // Taille appropriée
                       ), // If neither, no icon is shown (empty cell)
                     ),
                 ],
