@@ -6,7 +6,7 @@ Ce document décrit le concept, les règles et les aspects techniques d'un jeu d
 
 ## Règles du Jeu
 
-*   **Grille :** Le jeu se joue sur une grille de 25 cases en largeur et 25 cases en hauteur.
+*   **Grille :** Le jeu se joue sur une grille de 15 cases en largeur et 15 cases en hauteur.
 *   **Bases :** Chaque joueur commence avec une base de 3x3 cases située aléatoirement sur la grille de jeu (par exemple, joueur 1 en bas à gauche, joueur 2 en haut à droite). Les cases de la base sont initialement occupées par le joueur correspondant.
 *   **But du Jeu :** Le but est de capturer les 9 cases de la base adverse. Le joueur qui parvient à capturer toutes les cases de la base ennemie gagne la partie.
 *   **Tour de Jeu :** À chaque tour, le joueur dont c'est le tour doit sélectionner et capturer 5 cases adjacentes à ses propres cases déjà occupées.
