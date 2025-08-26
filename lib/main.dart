@@ -8,28 +8,12 @@ void main() {
   // Fix 1: Use gridclash package name
   runApp(
     ChangeNotifierProvider(
-      create: (context) => GameState(gridWidth: 15, gridHeight: 20), // Provide GameState
+      create: (context) =>
+          GameState(gridWidth: 15, gridHeight: 20), // Provide GameState
       child: const MyApp(gridWidth: 15, gridHeight: 20),
     ),
   );
 }
-
-// ThemeProvider class to manage the theme state (Assuming you still use this or similar)
-// class ThemeProvider with ChangeNotifier {
-//   ThemeMode _themeMode = ThemeMode.system; // Default to system theme
-
-//   ThemeMode get themeMode => _themeMode;
-
-//   void toggleTheme() {
-//     _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
-//     notifyListeners();
-//   }
-
-//   void setSystemTheme() {
-//     _themeMode = ThemeMode.system;
-//     notifyListeners();
-//   }
-// }
 
 class MyApp extends StatelessWidget {
   final int gridWidth;
@@ -133,7 +117,7 @@ class MyHomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Capture de Territoire'), // Votre titre
+        title: const Text('GridClash'), // Votre titre
       ),
       body: Consumer<GameState>(
         // Utiliser Consumer pour écouter les changements dans GameState
