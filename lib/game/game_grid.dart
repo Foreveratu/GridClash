@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:myapp/game/game_state.dart'; // Import your game state file
+import 'package:gridclash/game/game_state.dart'; // Import your game state file
 
 class GameGrid extends StatelessWidget {
   const GameGrid({super.key});
@@ -10,13 +10,13 @@ class GameGrid extends StatelessWidget {
     return Consumer<GameState>(
       builder: (context, gameState, child) {
         return GridView.builder(
-          itemCount: gameState.gridSize * gameState.gridSize,
+          itemCount: gameState.gridWidth * gameState.gridHeight,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: gameState.gridSize,
+            crossAxisCount: gameState.gridWidth,
           ),
           itemBuilder: (context, index) {
-            final row = index ~/ gameState.gridSize;
-            final col = index % gameState.gridSize;
+            final row = index ~/ gameState.gridWidth; // Integer division to get the row
+            final col = index % gameState.gridWidth; // Modulo to get the column
             final cell = gameState.grid[row][col];
 
             Color cellColor;
@@ -45,7 +45,7 @@ class GameGrid extends StatelessWidget {
               );
             }
 
-            final double cellSize = MediaQuery.of(context).size.width / gameState.gridSize;
+            final double cellSize = MediaQuery.of(context).size.width / gameState.gridWidth;
             return GestureDetector(
               onTap: () {
                 gameState.selectCell(row, col);

@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart'; // Import GoogleFonts
 import 'package:provider/provider.dart'; // Import Provider
-import 'package:myapp/game/game_state.dart'; // Import your GameState
-import 'package:myapp/game_ui.dart';
+import 'package:gridclash/game/game_state.dart'; // Import your GameState
+import 'package:gridclash/game_ui.dart'; // Import GameUI
 
 void main() {
+  // Fix 1: Use gridclash package name
   runApp(
     ChangeNotifierProvider(
-      create: (context) => GameState(), // Provide GameState
-      child: const MyApp(),
+      create: (context) => GameState(gridWidth: 15, gridHeight: 20), // Provide GameState
+      child: const MyApp(gridWidth: 15, gridHeight: 20),
     ),
   );
 }
@@ -31,7 +32,10 @@ void main() {
 // }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final int gridWidth;
+  final int gridHeight;
+
+  const MyApp({super.key, required this.gridWidth, required this.gridHeight});
 
   @override
   Widget build(BuildContext context) {
@@ -167,7 +171,7 @@ class MyHomePage extends StatelessWidget {
             );
           } else {
             // Si la partie n'est pas terminée, afficher la grille de jeu
-            return GameUI();
+            return GameUI(); // Fix 2: Assuming GameUI is a valid widget for the game grid. If not, replace with the correct widget.
           }
         },
       ),

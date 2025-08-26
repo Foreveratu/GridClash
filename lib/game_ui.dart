@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:myapp/game/game_state.dart';
-import 'package:myapp/game/game_grid.dart'; // Assurez-vous que GameGrid est importé ici
+import 'package:gridclash/game/game_state.dart';
+import 'package:gridclash/game/game_grid.dart'; // Assurez-vous que GameGrid est importé ici
 
 class GameUI extends StatelessWidget {
   const GameUI({super.key});

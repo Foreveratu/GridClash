@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 // We might need collection later for Set.difference, uncomment if analyze complains.
 import 'dart:developer' as developer;
-import 'dart:math';
 import 'dart:collection';
+import 'dart:math'; // Import dart:math for Random
 
 enum CellState { empty, player1, player2 }
 
@@ -37,8 +37,8 @@ class Player {
 }
 
 class GameState extends ChangeNotifier {
-  final int gridSize = 15;
   late List<List<Cell>> grid;
+  final int gridHeight;
   late Player currentPlayer;
   late List<Player> players;
   List<Cell> selectedCells = []; // Cells selected in the current turn
@@ -47,12 +47,13 @@ class GameState extends ChangeNotifier {
   List<Cell> player2Base = []; // List of cells in Player 2's base
   Player? winningPlayer; // Null if no player has won yet
   bool isGameOver = false; // True when a player wins
+  final int gridWidth;
 
-  GameState() {
-    // Initialize the grid with empty cells
+  GameState({required this.gridWidth, required this.gridHeight}) {
+    // Initialize the grid with empty cells using gridHeight and gridWidth
     grid = List.generate(
-      gridSize,
-      (row) => List.generate(gridSize, (col) => Cell(row: row, col: col)),
+      gridHeight,
+      (row) => List.generate(gridWidth, (col) => Cell(row: row, col: col)),
     );
 
     // Initialize players
@@ -74,8 +75,8 @@ class GameState extends ChangeNotifier {
     player2Base.clear();
 
     // Reset all cells to empty and not base/acquired
-    for (int row = 0; row < gridSize; row++) {
-      for (int col = 0; col < gridSize; col++) {
+    for (int row = 0; row < gridHeight; row++) {
+      for (int col = 0; col < gridWidth; col++) {
         grid[row][col].state = CellState.empty;
         grid[row][col].isBase = false;
         grid[row][col].isPermanentlyAcquired = false;
@@ -86,8 +87,9 @@ class GameState extends ChangeNotifier {
     // Find random 3x3 base for Player 1
     bool player1BasePlaced = false;
     while (!player1BasePlaced) {
-      final startRow = random.nextInt(gridSize - 2); // Ensure 3x3 fits
-      final startCol = random.nextInt(gridSize - 2);
+      // Ensure the 3x3 base fits within the grid boundaries
+      final startRow = random.nextInt(gridHeight - 2);
+      final startCol = random.nextInt(gridWidth - 2);
 
       bool areaIsEmpty = true;
       for (int i = 0; i < 3; i++) {
@@ -113,17 +115,27 @@ class GameState extends ChangeNotifier {
       }
     }
 
-    // Find random 3x3 base for Player 2 (ensure it doesn't overlap with Player 1's base)
+    // Find random 3x3 base for Player 2 (ensure it doesn't overlap with Player 1's base and is far enough)
+    final minDistance = 9.0; // Define minimum distance between base centers
     bool player2BasePlaced = false;
-    while (!player2BasePlaced) {
-      final startRow = random.nextInt(gridSize - 2);
-      final startCol = random.nextInt(gridSize - 2);
+    int attempts = 0;
+    const maxAttempts =
+        100; // Limit random placement attempts to avoid infinite loops
+
+    late int startRowPlayer2; // Declare startRow for Player 2's base
+
+    while (!player2BasePlaced && attempts < maxAttempts) {
+      // Ensure the 3x3 base fits within the grid boundaries, considering the new height
+      final startCol = random.nextInt(gridWidth - 2); // Corrected variable name
+      attempts++;
 
       bool areaIsEmpty = true;
       for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-          final cell = grid[startRow + i][startCol + j];
-          // Check if the cell is empty OR if it belongs to Player 2 (should be empty at this point)
+          startRowPlayer2 = random.nextInt(
+            gridHeight - 2,
+          ); // Initialize startRowPlayer2 here
+          final cell = grid[startRowPlayer2 + i][startCol + j];
           if (cell.state != CellState.empty) {
             areaIsEmpty = false;
             break;
@@ -135,19 +147,34 @@ class GameState extends ChangeNotifier {
       // Additionally, check for overlap with Player 1's base
       bool overlapsWithPlayer1 = false;
       for (var p1BaseCell in player1Base) {
-        if (p1BaseCell.row >= startRow &&
-            p1BaseCell.row < startRow + 3 &&
-            p1BaseCell.col >= startCol &&
+        if (p1BaseCell.row >= startRowPlayer2 &&
+            p1BaseCell.row < startRowPlayer2 + 3 &&
+            p1BaseCell.col >= startCol && // Use startColPlayer2 here
             p1BaseCell.col < startCol + 3) {
+          // Use startColPlayer2 here
           overlapsWithPlayer1 = true;
           break;
         }
       }
 
-      if (areaIsEmpty && !overlapsWithPlayer1) {
+      // Additionally, check for minimum distance between base centers
+      final p1CenterX = player1Base[0].col + 1.5; // Center of 3x3 base
+      final p1CenterY = player1Base[0].row + 1.5;
+      final p2CenterX = startCol + 1.5; // Use startColPlayer2 here
+      final p2CenterY = startRowPlayer2 + 1.5; // Use startRowPlayer2 here
+
+      final distance = sqrt(
+        pow(p2CenterX - p1CenterX, 2) + pow(p2CenterY - p1CenterY, 2),
+      );
+
+      final isFarEnough = distance >= minDistance;
+
+      if (areaIsEmpty && !overlapsWithPlayer1 && isFarEnough) {
         for (int i = 0; i < 3; i++) {
           for (int j = 0; j < 3; j++) {
-            final cell = grid[startRow + i][startCol + j];
+            final cell =
+                grid[startRowPlayer2 + i][startCol +
+                    j]; // Use startRowPlayer2 and startColPlayer2 here
             cell.state = CellState.player2;
             cell.isBase = true;
             player2Base.add(cell);
@@ -156,6 +183,35 @@ class GameState extends ChangeNotifier {
         player2BasePlaced = true;
       }
     }
+
+    // Fallback: If random placement failed after maxAttempts, place bases in opposite corners
+    if (!player2BasePlaced) {
+      developer.log(
+        'Random base placement failed after $maxAttempts attempts. Using fallback.',
+      );
+      // Clear any potentially partially placed base 2 cells
+      for (int row = 0; row < gridHeight; row++) {
+        for (int col = 0; col < gridWidth; col++) {
+          if (grid[row][col].state == CellState.player2) {
+            grid[row][col].state = CellState.empty;
+            grid[row][col].isBase = false;
+          }
+        }
+      }
+      player2Base.clear();
+
+      // Place Player 1 base in top-left corner
+      // Player 1 base is already placed randomly, no need to move it for the fallback
+
+      // Place Player 2 base in bottom-right corner
+      for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+          final cell = grid[gridHeight - 3 + i][gridWidth - 3 + j];
+          cell.isBase = true;
+          player2Base.add(cell);
+        }
+      }
+    } // Corrected closing brace
 
     notifyListeners(); // Notify listeners that the grid has changed
   }
@@ -172,9 +228,9 @@ class GameState extends ChangeNotifier {
 
       // Check if the adjacent cell is within bounds
       if (adjacentRow >= 0 &&
-          adjacentRow < gridSize &&
+          adjacentRow < gridHeight &&
           adjacentCol >= 0 &&
-          adjacentCol < gridSize) {
+          adjacentCol < gridWidth) {
         final adjacentCell = grid[adjacentRow][adjacentCol];
 
         // Check if the adjacent cell belongs to current player (base or captured) AND is accessible
@@ -207,7 +263,7 @@ class GameState extends ChangeNotifier {
   void selectCell(int row, int col) {
     // Clear previous attempted captures at the start of a new tap sequence
     attemptedCaptureCells.clear();
-    if (row < 0 || row >= gridSize || col < 0 || col >= gridSize) {
+    if (row < 0 || row >= gridHeight || col < 0 || col >= gridWidth) {
       return;
     }
 
@@ -411,8 +467,8 @@ class GameState extends ChangeNotifier {
   void replayGame() {
     // Reset grid
     grid = List.generate(
-      gridSize,
-      (row) => List.generate(gridSize, (col) => Cell(row: row, col: col)),
+      gridHeight,
+      (row) => List.generate(gridWidth, (col) => Cell(row: row, col: col)),
     );
 
     // Reset bases
@@ -442,8 +498,8 @@ class GameState extends ChangeNotifier {
 
     // Start BFS from all cells of the player, including selected ones
     // Iterate over all cells to find those that belong to the player OR are in selectedCells (if checking current player)
-    for (var row = 0; row < gridSize; row++) {
-      for (var col = 0; col < gridSize; col++) {
+    for (var row = 0; row < gridHeight; row++) {
+      for (var col = 0; col < gridWidth; col++) {
         final cell = grid[row][col];
         // Include base cells AND selected cells (if checking current player) as starting points
         if (cell.state == playerState &&
@@ -479,9 +535,9 @@ class GameState extends ChangeNotifier {
 
         // Check if the adjacent cell is within bounds
         if (adjacentRow >= 0 &&
-            adjacentRow < gridSize &&
+            adjacentRow < gridHeight &&
             adjacentCol >= 0 &&
-            adjacentCol < gridSize) {
+            adjacentCol < gridWidth) {
           final adjacentCell = grid[adjacentRow][adjacentCol];
 
           // Check if the adjacent cell belongs to the same player
@@ -504,8 +560,8 @@ class GameState extends ChangeNotifier {
   // Getters for player scores
   int get player1Score {
     int count = 0;
-    for (var row = 0; row < gridSize; row++) {
-      for (var col = 0; col < gridSize; col++) {
+    for (var row = 0; row < gridHeight; row++) {
+      for (var col = 0; col < gridWidth; col++) {
         if (grid[row][col].state == CellState.player1) {
           count++;
         }
@@ -516,8 +572,8 @@ class GameState extends ChangeNotifier {
 
   int get player2Score {
     int count = 0;
-    for (var row = 0; row < gridSize; row++) {
-      for (var col = 0; col < gridSize; col++) {
+    for (var row = 0; row < gridHeight; row++) {
+      for (var col = 0; col < gridWidth; col++) {
         if (grid[row][col].state == CellState.player2) {
           count++;
         }

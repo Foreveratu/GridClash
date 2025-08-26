@@ -1,4 +1,4 @@
-# myapp
+# gridclash
 
 Jeu de Capture de Territoire
 
@@ -6,7 +6,7 @@ Ce projet est une implémentation en Flutter d'un jeu de capture de territoire b
 
 ## Règles du Jeu
 
-*   **Grille :** Le jeu se déroule sur une grille de 15x15 cases.
+*   **Grille :** Le jeu se déroule sur une grille de 15x20 cases.
 *   **Bases :** Chaque joueur commence avec une base de 3x3 cases, initialement occupées.
 *   **But du Jeu :** Capturer les 9 cases de la base adverse.
 *   **Tour de Jeu :** À chaque tour, un joueur sélectionne 5 cases adjacentes à ses cases déjà occupées pour les capturer.
