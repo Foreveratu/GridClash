@@ -102,6 +102,66 @@ void main() {
       expect(connectedCells, isEmpty);
     });
 
+
+    test('getConnectedCells returns the set of connected cells from base', () {
+      final gameState = GameState(gridWidth: 15, gridHeight: 20);
+      // Reset the grid to be empty (assuming a 15x20 grid)
+      for (int row = 0; row < gameState.gridHeight; row++) {
+        for (int col = 0; col < gameState.gridWidth; col++) {
+          // Use gridWidth for columns
+          gameState.grid[row][col].state = CellState.empty;
+          gameState.grid[row][col].isBase = false; // Ensure no base cells
+        }
+      }
+
+      // Set a single cell to belong to player 1 and be their base
+      gameState.grid[0][0].state = CellState.player1;
+      gameState.grid[0][0].isBase = true;
+
+      // Set a single cell to belong to player 1 and be their base
+      gameState.grid[0][1].state = CellState.player1;
+      gameState.grid[0][1].isBase = false;
+
+      // Set a single cell to belong to player 1 and be their base
+      gameState.grid[0][2].state = CellState.player1;
+      gameState.grid[0][2].isBase = false;
+
+      // Set a single cell to belong to player 1 and be their base
+      gameState.grid[0][4].state = CellState.player1;
+      gameState.grid[0][4].isBase = false;
+
+      final connectedCells = gameState.getConnectedCells(gameState.players[0]);
+      expect(connectedCells.length, 3);
+    });
+
+    test('getConnectedCells returns empty set of connected cells from base but base cell captured', () {
+      final gameState = GameState(gridWidth: 15, gridHeight: 20);
+      // Reset the grid to be empty (assuming a 15x20 grid)
+      for (int row = 0; row < gameState.gridHeight; row++) {
+        for (int col = 0; col < gameState.gridWidth; col++) {
+          // Use gridWidth for columns
+          gameState.grid[row][col].state = CellState.empty;
+          gameState.grid[row][col].isBase = false; // Ensure no base cells
+        }
+      }
+
+      // Set a single cell to belong to player 1 and be their base
+      gameState.grid[0][0].state = CellState.player2;
+      gameState.grid[0][0].isBase = true;
+      gameState.grid[0][0].isPermanentlyAcquired = true;
+
+      // Set a single cell to belong to player 1 and be their base
+      gameState.grid[0][1].state = CellState.player1;
+      gameState.grid[0][1].isBase = false;
+
+      // Set a single cell to belong to player 1 and be their base
+      gameState.grid[0][2].state = CellState.player1;
+      gameState.grid[0][2].isBase = false;
+
+      final connectedCells = gameState.getConnectedCells(gameState.players[0]);
+      expect(connectedCells, isEmpty);
+    });
+
     test(
       'getConnectedCells returns a set with the single cell for a 1x1 grid belonging to the player',
       () {
