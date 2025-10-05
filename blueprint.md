@@ -14,6 +14,7 @@ Ce document décrit le concept, les règles et les aspects techniques d'un jeu d
 *   **Capture :**
     *   Une case vide adjacente à une case occupée par le joueur peut être capturée.
     *   Une case déjà occupée par l'adversaire et adjacente à une case occupée par le joueur peut être directement capturée en la sélectionnant. Elle devient alors définitivement la propriété du joueur qui l'a sélectionnée.
+    * Une case définitivement acquise ne peut plus être reprise par le joueur adverse
 *   **Connectivité :** Toutes les cases occupées par un joueur doivent être connectées à sa base principale. Si une ligne de cases n'est plus reliée à la base du joueur (par exemple, si la connexion a été coupée par l'adversaire), le joueur ne peut plus placer de nouvelles cases sur cette ligne déconnectée tant qu'une connexion n'est pas rétablie. Les cases déconnectées sont marquées comme inaccessibles par la logique du jeu.
 
 Ce jeu combine des éléments de placement stratégique et de contrôle de territoire, où la planification et la défense des lignes de connexion sont cruciales.

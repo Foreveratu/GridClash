@@ -11,7 +11,7 @@ Ce projet est une implémentation en Flutter d'un jeu de capture de territoire b
 *   **But du Jeu :** Capturer les 9 cases de la base adverse.
 *   **Tour de Jeu :** À chaque tour, un joueur sélectionne 5 cases adjacentes à ses cases déjà occupées pour les capturer.
 *   **Premier Tour :** Les 5 cases doivent être adjacentes à la base.
-*   **Capture :** Capture de cases vides ou de cases adverses adjacentes. Une case adverse capturée devient définitivement la propriété du joueur.
+*   **Capture :** Capture de cases vides ou de cases adverses adjacentes. Une case adverse capturée devient définitivement la propriété du joueur et ne peut plus être reprise par l'adversaire.
 *   **Connectivité :** Toutes les cases capturées doivent rester connectées à la base principale. Les cases déconnectées deviennent inaccessibles.
 
 ## Affichage et Visuels
