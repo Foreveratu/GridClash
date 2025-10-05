@@ -36,13 +36,7 @@ class GameGrid extends StatelessWidget {
 
             Color finalCellColor = cellColor;
             if (!cell.isAccessible) {
-              finalCellColor = Color.fromRGBO(
-                (cellColor.r * 255.0).round() & 0xff, // Correct way to get red
-                (cellColor.g * 255.0).round() &
-                    0xff, // Correct way to get green
-                (cellColor.b * 255.0).round() & 0xff, // Correct way to get blue
-                0.5, // Desired opacity
-              );
+              finalCellColor = cellColor.withAlpha(128); // 50% opacity
             }
 
             final double cellSize = MediaQuery.of(context).size.width / gameState.gridWidth;
@@ -72,7 +66,7 @@ class GameGrid extends StatelessWidget {
                       child: Icon(
                         Icons.close,
                         color: gameState.currentPlayer.color, // Ou Colors.white
- size: cellSize * 0.6, // Ou la taille appropriée
+                        size: cellSize * 0.6, // Ou la taille appropriée
                       ),
                     )
                   // Show black circle for permanently acquired cells (bases included if permanently acquired)
@@ -81,7 +75,7 @@ class GameGrid extends StatelessWidget {
                       child: Icon(
                         Icons.circle,
                         color: Colors.black, // Cercle noir
- size: cellSize * 0.6, // Taille appropriée
+                        size: cellSize * 0.6, // Taille appropriée
                       ),
                     )
                   // Show black cross for base cells that still belong to the original player
@@ -91,7 +85,7 @@ class GameGrid extends StatelessWidget {
                         Icons.close,
                         color: Colors
                             .black, // Croix noire pour bases non capturées
- size: cellSize * 0.6, // Taille appropriée
+                        size: cellSize * 0.6, // Taille appropriée
                       ),
                     )
                   // Show colored cross for other acquired cells (not base, not permanently acquired)
@@ -100,7 +94,7 @@ class GameGrid extends StatelessWidget {
                       child: Icon(
                         Icons.close,
                         color: Colors.white,
- size: cellSize * 0.6, // Taille appropriée
+                        size: cellSize * 0.6, // Taille appropriée
                       ), // If neither, no icon is shown (empty cell)
                     ),
                 ],
