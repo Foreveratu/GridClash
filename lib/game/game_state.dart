@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-// We might need collection later for Set.difference, uncomment if analyze complains.
 import 'dart:developer' as developer;
 import 'dart:collection';
-import 'dart:math'; // Import dart:math for Random
+import 'dart:math';
 
 enum CellState { empty, player1, player2 }
 
@@ -16,7 +15,6 @@ class Cell {
 
   Cell({required this.row, required this.col, this.state = CellState.empty});
 
-  // Override equals and hashCode for Set operations
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -41,56 +39,45 @@ class GameState extends ChangeNotifier {
   final int gridHeight;
   late Player currentPlayer;
   late List<Player> players;
-  List<Cell> selectedCells = []; // Cells selected in the current turn
-  List<Cell> attemptedCaptureCells = []; // Cells where a capture was attempted
-  List<Cell> player1Base = []; // List of cells in Player 1's base
-  List<Cell> player2Base = []; // List of cells in Player 2's base
-  Player? winningPlayer; // Null if no player has won yet
-  bool isGameOver = false; // True when a player wins
+  List<Cell> selectedCells = [];
+  List<Cell> attemptedCaptureCells = [];
+  List<Cell> player1Base = [];
+  List<Cell> player2Base = [];
+  Player? winningPlayer;
+  bool isGameOver = false;
   final int gridWidth;
 
   GameState({required this.gridWidth, required this.gridHeight}) {
-    // Initialize the grid with empty cells using gridHeight and gridWidth
     grid = List.generate(
       gridHeight,
       (row) => List.generate(gridWidth, (col) => Cell(row: row, col: col)),
     );
-
-    // Initialize players
     players = [
-      Player(id: 1, color: Colors.blue), // Player 1 is Blue
-      Player(id: 2, color: Colors.red), // Player 2 is Red
+      Player(id: 1, color: Colors.blue),
+      Player(id: 2, color: Colors.red),
     ];
-
-    // Initialize bases on the grid
     initializeBases();
-
-    // Player 1 starts the game
     currentPlayer = players[0];
   }
 
   void initializeBases() {
     final random = Random();
-    player1Base.clear(); // Clear existing base cells
+    player1Base.clear();
     player2Base.clear();
 
-    // Reset all cells to empty and not base/acquired
     for (int row = 0; row < gridHeight; row++) {
       for (int col = 0; col < gridWidth; col++) {
         grid[row][col].state = CellState.empty;
         grid[row][col].isBase = false;
         grid[row][col].isPermanentlyAcquired = false;
-        grid[row][col].isAccessible = true; // Reset accessibility
+        grid[row][col].isAccessible = true;
       }
     }
 
-    // Find random 3x3 base for Player 1
     bool player1BasePlaced = false;
     while (!player1BasePlaced) {
-      // Ensure the 3x3 base fits within the grid boundaries
       final startRow = random.nextInt(gridHeight - 2);
       final startCol = random.nextInt(gridWidth - 2);
-
       bool areaIsEmpty = true;
       for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
@@ -101,7 +88,6 @@ class GameState extends ChangeNotifier {
         }
         if (!areaIsEmpty) break;
       }
-
       if (areaIsEmpty) {
         for (int i = 0; i < 3; i++) {
           for (int j = 0; j < 3; j++) {
@@ -115,26 +101,18 @@ class GameState extends ChangeNotifier {
       }
     }
 
-    // Find random 3x3 base for Player 2 (ensure it doesn't overlap with Player 1's base and is far enough)
-    final minDistance = 9.0; // Define minimum distance between base centers
+    final minDistance = 9.0;
     bool player2BasePlaced = false;
     int attempts = 0;
-    const maxAttempts =
-        100; // Limit random placement attempts to avoid infinite loops
-
-    late int startRowPlayer2; // Declare startRow for Player 2's base
-
+    const maxAttempts = 100;
+    late int startRowPlayer2;
     while (!player2BasePlaced && attempts < maxAttempts) {
-      // Ensure the 3x3 base fits within the grid boundaries, considering the new height
-      final startCol = random.nextInt(gridWidth - 2); // Corrected variable name
+      final startCol = random.nextInt(gridWidth - 2);
       attempts++;
-
       bool areaIsEmpty = true;
       for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
-          startRowPlayer2 = random.nextInt(
-            gridHeight - 2,
-          ); // Initialize startRowPlayer2 here
+          startRowPlayer2 = random.nextInt(gridHeight - 2);
           final cell = grid[startRowPlayer2 + i][startCol + j];
           if (cell.state != CellState.empty) {
             areaIsEmpty = false;
@@ -143,38 +121,28 @@ class GameState extends ChangeNotifier {
         }
         if (!areaIsEmpty) break;
       }
-
-      // Additionally, check for overlap with Player 1's base
       bool overlapsWithPlayer1 = false;
       for (var p1BaseCell in player1Base) {
         if (p1BaseCell.row >= startRowPlayer2 &&
             p1BaseCell.row < startRowPlayer2 + 3 &&
-            p1BaseCell.col >= startCol && // Use startColPlayer2 here
+            p1BaseCell.col >= startCol &&
             p1BaseCell.col < startCol + 3) {
-          // Use startColPlayer2 here
           overlapsWithPlayer1 = true;
           break;
         }
       }
-
-      // Additionally, check for minimum distance between base centers
-      final p1CenterX = player1Base[0].col + 1.5; // Center of 3x3 base
+      final p1CenterX = player1Base[0].col + 1.5;
       final p1CenterY = player1Base[0].row + 1.5;
-      final p2CenterX = startCol + 1.5; // Use startColPlayer2 here
-      final p2CenterY = startRowPlayer2 + 1.5; // Use startRowPlayer2 here
-
+      final p2CenterX = startCol + 1.5;
+      final p2CenterY = startRowPlayer2 + 1.5;
       final distance = sqrt(
         pow(p2CenterX - p1CenterX, 2) + pow(p2CenterY - p1CenterY, 2),
       );
-
       final isFarEnough = distance >= minDistance;
-
       if (areaIsEmpty && !overlapsWithPlayer1 && isFarEnough) {
         for (int i = 0; i < 3; i++) {
           for (int j = 0; j < 3; j++) {
-            final cell =
-                grid[startRowPlayer2 + i][startCol +
-                    j]; // Use startRowPlayer2 and startColPlayer2 here
+            final cell = grid[startRowPlayer2 + i][startCol + j];
             cell.state = CellState.player2;
             cell.isBase = true;
             player2Base.add(cell);
@@ -184,12 +152,10 @@ class GameState extends ChangeNotifier {
       }
     }
 
-    // Fallback: If random placement failed after maxAttempts, place bases in opposite corners
     if (!player2BasePlaced) {
       developer.log(
         'Random base placement failed after $maxAttempts attempts. Using fallback.',
       );
-      // Clear any potentially partially placed base 2 cells
       for (int row = 0; row < gridHeight; row++) {
         for (int col = 0; col < gridWidth; col++) {
           if (grid[row][col].state == CellState.player2) {
@@ -199,11 +165,6 @@ class GameState extends ChangeNotifier {
         }
       }
       player2Base.clear();
-
-      // Place Player 1 base in top-left corner
-      // Player 1 base is already placed randomly, no need to move it for the fallback
-
-      // Place Player 2 base in bottom-right corner
       for (int i = 0; i < 3; i++) {
         for (int j = 0; j < 3; j++) {
           final cell = grid[gridHeight - 3 + i][gridWidth - 3 + j];
@@ -211,353 +172,219 @@ class GameState extends ChangeNotifier {
           player2Base.add(cell);
         }
       }
-    } // Corrected closing brace
-
-    notifyListeners(); // Notify listeners that the grid has changed
+    }
+    notifyListeners();
   }
 
-  // Helper to check if a cell is adjacent to a cell owned by the current player or in selectedCells
+  void _checkWinCondition() {
+    final tempSelected = selectedCells.toSet();
+    final currentPlayerState = _playerToCellState(currentPlayer);
+
+    List<Cell> opponentBase = (currentPlayer.id == 1)
+        ? player2Base
+        : player1Base;
+
+    bool opponentBaseCaptured = opponentBase.every((baseCell) {
+      return baseCell.state == currentPlayerState ||
+          tempSelected.contains(baseCell);
+    });
+
+    if (opponentBaseCaptured) {
+      winningPlayer = currentPlayer;
+      isGameOver = true;
+      developer.log('Player ${currentPlayer.id} WINS!');
+    }
+  }
+
+  void _updateConnectivity() {
+    for (var player in players) {
+      final allPlayerCells = grid
+          .expand((row) => row)
+          .where((cell) => cell.state == _playerToCellState(player))
+          .toSet();
+      final connectedCells = getConnectedCells(player);
+      for (var cell in allPlayerCells) {
+        cell.isAccessible = connectedCells.contains(cell);
+      }
+    }
+  }
+
+  void _updateProvisionalConnectivity() {
+    final allPlayerCells = grid
+        .expand((row) => row)
+        .where((cell) => cell.state == _playerToCellState(currentPlayer))
+        .toSet();
+    final connectedCells = getConnectedCells(
+      currentPlayer,
+      additionalCells: selectedCells,
+    );
+    for (var cell in allPlayerCells) {
+      cell.isAccessible = connectedCells.contains(cell);
+    }
+    notifyListeners();
+  }
+
   bool _isAdjacentToOwned(int row, int col) {
     final adjacentOffsets = [
-      [-1, 0], [1, 0], [0, -1], [0, 1], // Up, Down, Left, Right
+      [-1, 0],
+      [1, 0],
+      [0, -1],
+      [0, 1],
     ];
-
     for (var offset in adjacentOffsets) {
       final adjacentRow = row + offset[0];
       final adjacentCol = col + offset[1];
-
-      // Check if the adjacent cell is within bounds
       if (adjacentRow >= 0 &&
           adjacentRow < gridHeight &&
           adjacentCol >= 0 &&
           adjacentCol < gridWidth) {
         final adjacentCell = grid[adjacentRow][adjacentCol];
-
-        // Check if the adjacent cell belongs to current player (base or captured) AND is accessible
-        // OR if the adjacent cell is in the temporarily selected cells AND is accessible
-        // OR if the adjacent cell belongs to the opponent AND is NOT accessible (target for capture)
-        if (
-        // Case 1: Adjacent cell belongs to current player and is accessible
-        (adjacentCell.state == _playerToCellState(currentPlayer) &&
+        if ((adjacentCell.state == _playerToCellState(currentPlayer) &&
                 adjacentCell.isAccessible) ||
-            // Case 2: Adjacent cell is in temporarily selected cells and is accessible
-            (selectedCells.contains(adjacentCell) &&
-                adjacentCell.isAccessible) ||
-            // Case 3: Adjacent cell belongs to opponent and is NOT accessible (target for capture)
-            (adjacentCell.state != _playerToCellState(currentPlayer) &&
-                adjacentCell.state != CellState.empty &&
-                !adjacentCell.isAccessible)) {
-          return true; // Found a valid adjacent cell to expand from
+            selectedCells.contains(adjacentCell)) {
+          return true;
         }
       }
     }
-    return false; // No adjacent cell owned by the player or in selectedCells found
+    return false;
   }
 
-  // Helper to determine the CellState corresponding to a Player
   CellState _playerToCellState(Player player) {
     return player.id == 1 ? CellState.player1 : CellState.player2;
   }
 
-  // Handles a cell tap
   void selectCell(int row, int col) {
-    // Clear previous attempted captures at the start of a new tap sequence
-    attemptedCaptureCells.clear();
-    if (row < 0 || row >= gridHeight || col < 0 || col >= gridWidth) {
-      return;
-    }
+    if (isGameOver) return;
 
-    final cell = grid[row][col]; // Get the cell instance
+    if (row < 0 || row >= gridHeight || col < 0 || col >= gridWidth) return;
 
-    // Check if the cell is accessible (not disconnected)
-    /*if (!cell.isAccessible) {
-      developer.log('Cell ($row, $col) is inaccessible.'); // Debug print
-      return;
-    }*/
+    final cell = grid[row][col];
 
-    // Validation:
-    // 1. Cell must be empty, OR
-    //    If not empty and NOT permanently acquired, must be an opponent's cell (including base).
-    // 2. Cell must not already be in selectedCells for this turn. // Duplicate comment - Keeping one
-    // 2. Cell must not already be in selectedCells for this turn.
-    // 3. Cell must be adjacent to player's territory (owned or temporarily selected).
     final isValidForSelection =
-        !cell
-            .isPermanentlyAcquired && // La case ne doit PAS être définitivement acquise
-        !selectedCells.contains(
-          cell,
-        ) && // La case ne doit pas déjà être sélectionnée ce tour
-        _isAdjacentToOwned(
-          row,
-          col,
-        ) && // La case doit être adjacente à un territoire accessible du joueur
+        !cell.isPermanentlyAcquired &&
+        !selectedCells.contains(cell) &&
+        _isAdjacentToOwned(row, col) &&
         (cell.state == CellState.empty ||
-            cell.state !=
-                _playerToCellState(
-                  currentPlayer,
-                )); // Et si elle n'est pas définitivement acquise, elle doit être vide OU appartenir à l'adversaire.
+            cell.state != _playerToCellState(currentPlayer));
 
     if (isValidForSelection) {
-      // If the cell is valid and not already selected, add it to selectedCells
       if (selectedCells.length < 5) {
-        // Check for 5-cell limit
-        selectedCells.add(cell); // Add the cell to the list of selected cells
+        selectedCells.add(cell);
+        _updateProvisionalConnectivity();
+        developer.log('Selected cell: ($row, ${cell.col})');
 
-        notifyListeners(); // Notify listeners to update UI with temporary selection (cross)
+        _checkWinCondition();
 
-        // *** Immediate Connectivity Check for the current player ***
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          // Get all cells owned by the current player BEFORE temporarily changing selectedCells
-          final allCurrentPlayerCellsBeforeSelection = grid
-              .expand((row) => row)
-              .where((cell) => cell.state == _playerToCellState(currentPlayer))
-              .toSet();
-
-          // Temporarily change state of selected cells for connectivity check
-          List<CellState> originalStates = [];
-          for (var selectedCell in selectedCells) {
-            originalStates.add(selectedCell.state);
-            selectedCell.state = _playerToCellState(currentPlayer);
-          }
-
-          // Get all cells connected to the current player's base
-          final connectedCurrentPlayerCells = getConnectedCells(currentPlayer);
-
-          // Update accessibility based on the immediate check
-          for (var playerCell in allCurrentPlayerCellsBeforeSelection) {
-            playerCell.isAccessible = connectedCurrentPlayerCells.contains(
-              playerCell,
-            );
-          }
-
-          // *** End Immediate Connectivity Check ***
-          notifyListeners(); // Notify listeners to reflect immediate accessibility changes
-
-          // Determine the opponent player
-          final opponentPlayer = (currentPlayer.id == 1)
-              ? players[1]
-              : players[0];
-          final opponentBase = (opponentPlayer.id == 1)
-              ? player1Base
-              : player2Base;
-
-          // Log the state of each opponent base cell before checking victory
-          developer.log('Checking opponent base cells for victory:');
-          for (var baseCell in opponentBase) {
-            developer.log(
-              '  Base Cell (${baseCell.row}, ${baseCell.col}): State = ${baseCell.state}, isBase = ${baseCell.isBase}',
-            );
-          }
-
-          // Check if all opponent's base cells belong to the current player
-          bool currentPlayerWins = true;
-
-          for (var baseCell in opponentBase) {
-            if (baseCell.state != _playerToCellState(currentPlayer)) {
-              currentPlayerWins = false;
-              break; // No need to check further, not all base cells are captured
-            }
-          }
-
-          if (currentPlayerWins) {
-            // Handle win condition (e.g., display message, stop game)
-            developer.log('Player ${currentPlayer.id} WINS!');
-            winningPlayer = currentPlayer; // Set the winning player
-            isGameOver = true; // Mark the game as over
-            // Si le jeu est terminé, on arrête le traitement de ce tour
-            notifyListeners(); // Notify listeners for the game over state change
-            return; // Sortir de la méthode selectCell
-          }
-
-          // Restore original states of selected cells
-          for (int i = 0; i < selectedCells.length; i++) {
-            selectedCells[i].state = originalStates[i];
-          }
-
-          notifyListeners();
-        });
-
-        // If the game is over, stop processing this turn
         if (isGameOver) {
-          return; // Exit selectCell
-        }
-
-        // *** Immediate Connectivity Check for the opponent player ***
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          final opponentPlayer = (currentPlayer.id == 1)
-              ? players[1]
-              : players[0];
-
-          // Get all cells owned by the opponent BEFORE any temporary changes (shouldn't be any for opponent here, but good practice)
-          final allOpponentPlayerCells = grid
-              .expand((row) => row)
-              .where((cell) => cell.state == _playerToCellState(opponentPlayer))
-              .toSet();
-
-          // Get all cells connected to the opponent player's base
-          final connectedOpponentPlayerCells = getConnectedCells(
-            opponentPlayer,
-          );
-
-          // Update accessibility based on the immediate check for the opponent
-          for (var opponentCell in allOpponentPlayerCells) {
-            opponentCell.isAccessible = connectedOpponentPlayerCells.contains(
-              opponentCell,
-            );
-          }
-
-          // *** End Immediate Connectivity Check for the opponent player ***
-
-          // Notify listeners to reflect immediate accessibility changes for the opponent as well
-          notifyListeners(); // <-- This notifyListeners will update for opponent's accessibility changes
-        });
-
-        // *** End Immediate Connectivity Check ***
-        developer.log(
-          'Selected cell: ($row, ${cell.col})',
-        ); // Debug print - Added cell.col
-
-        // Check if 5 cells have been selected
-        if (selectedCells.length == 5) {
-          // Apply changes, clear selected cells, and switch player
           for (var selectedCell in selectedCells) {
-            // If the selected cell was an opponent's cell, mark it as permanently acquired
             if (_playerToCellState(currentPlayer) != selectedCell.state &&
                 selectedCell.state != CellState.empty) {
               selectedCell.isPermanentlyAcquired = true;
+              developer.log(
+                'Game over selected cell is permanently acquired: ($row, ${cell.col})',
+              );
             }
-
-            selectedCell.state = _playerToCellState(
-              currentPlayer,
-            ); // Set cell state to current player
+            selectedCell.state = _playerToCellState(currentPlayer);
           }
-
-          // Log the state of selected cells after applying changes
-          developer.log('State of selected cells after applying changes:');
-          for (var selectedCell in selectedCells) {
-            developer.log(
-              '  Selected Cell (${selectedCell.row}, ${selectedCell.col}): State = ${selectedCell.state}, isBase = ${selectedCell.isBase}, isPermanentlyAcquired = ${selectedCell.isPermanentlyAcquired}',
-            );
-          }
-
-          selectedCells.clear(); // Clear selected cells for the next turn
-
-          // Switch to the next player
-          currentPlayer = (currentPlayer.id == 1) ? players[1] : players[0];
-          developer.log(
-            'End of turn. Next player: ${currentPlayer.id}',
-          ); // Debug print
-
-          notifyListeners(); // Notify listeners for final state changes, player switch, and accessibility updates
+          _updateConnectivity();
+          selectedCells.clear();
+          notifyListeners();
+          return;
         }
+
+        if (selectedCells.length == 5) {
+          for (var selectedCell in selectedCells) {
+            if (_playerToCellState(currentPlayer) != selectedCell.state &&
+                selectedCell.state != CellState.empty) {
+              selectedCell.isPermanentlyAcquired = true;
+              developer.log(
+                'Selected cell is permanently acquired: ($row, ${cell.col})',
+              );
+            }
+            selectedCell.state = _playerToCellState(currentPlayer);
+          }
+          _updateConnectivity();
+          selectedCells.clear();
+          currentPlayer = (currentPlayer.id == 1) ? players[1] : players[0];
+          developer.log('End of turn. Next player: ${currentPlayer.id}');
+        }
+        notifyListeners();
       }
     } else {
-      // Optional: Allow deselecting a cell if it was already selected in this turn
-      // if (selectedCells.contains(cell)) {
-      //   selectedCells.remove(cell);
-      //   notifyListeners();
-      // }
       developer.log(
         'Cell ($row, ${cell.col}) validation failed. State: ${cell.state}, In Selected: ${selectedCells.contains(cell)}, Adjacent Owned: ${_isAdjacentToOwned(row, col)}',
-      ); // Debug print - More details
+      );
     }
   }
 
-  // Resets the game state for a new game
   void replayGame() {
-    // Reset grid
     grid = List.generate(
       gridHeight,
       (row) => List.generate(gridWidth, (col) => Cell(row: row, col: col)),
     );
-
-    // Reset bases
-    player1Base.clear(); // Clear existing base cell references
+    player1Base.clear();
     player2Base.clear();
-    initializeBases(); // Re-initialize bases on the new grid
-
-    // Reset turn state
+    initializeBases();
     selectedCells.clear();
     attemptedCaptureCells.clear();
-    currentPlayer = players[0]; // Player 1 starts again
-
-    // Reset win state
+    currentPlayer = players[0];
     winningPlayer = null;
     isGameOver = false;
-
-    notifyListeners(); // Notify listeners to reset the UI
+    notifyListeners();
   }
 
-  // Helper to get all cells connected to a player's base using BFS
-  Set<Cell> getConnectedCells(Player player) {
+  Set<Cell> getConnectedCells(Player player, {List<Cell>? additionalCells}) {
     final connectedCells = <Cell>{};
     final queue = Queue<Cell>();
     final visited = <Cell>{};
-
     final playerState = _playerToCellState(player);
 
-    // Start BFS from all cells of the player, including selected ones
-    // Iterate over all cells to find those that belong to the player OR are in selectedCells (if checking current player)
-    for (var row = 0; row < gridHeight; row++) {
-      for (var col = 0; col < gridWidth; col++) {
-        final cell = grid[row][col];
-        // Include base cells AND selected cells (if checking current player) as starting points
-        if (cell.state == playerState &&
-            cell.isBase &&
-            !cell.isPermanentlyAcquired) {
-          // Always start from bases
-          if (!visited.contains(cell)) {
-            queue.add(cell);
-            visited.add(cell);
-            connectedCells.add(cell);
-          }
-        } else if (player == currentPlayer && selectedCells.contains(cell)) {
-          // Also start from selected cells if checking current player
-          if (!visited.contains(cell)) {
-            queue.add(cell);
-            visited.add(cell);
-            connectedCells.add(cell);
-          }
+    // Find base cells by searching the grid directly
+    for (final row in grid) {
+      for (final cell in row) {
+        if (cell.isBase &&
+            cell.state == playerState &&
+            !cell.isPermanentlyAcquired &&
+            !visited.contains(cell)) {
+          queue.add(cell);
+          visited.add(cell);
+          connectedCells.add(cell);
         }
       }
     }
 
     final adjacentOffsets = [
-      [-1, 0], [1, 0], [0, -1], [0, 1], // Up, Down, Left, Right
+      [-1, 0],
+      [1, 0],
+      [0, -1],
+      [0, 1],
     ];
-
     while (queue.isNotEmpty) {
       final currentCell = queue.removeFirst();
-
       for (var offset in adjacentOffsets) {
         final adjacentRow = currentCell.row + offset[0];
         final adjacentCol = currentCell.col + offset[1];
-
-        // Check if the adjacent cell is within bounds
         if (adjacentRow >= 0 &&
             adjacentRow < gridHeight &&
             adjacentCol >= 0 &&
             adjacentCol < gridWidth) {
           final adjacentCell = grid[adjacentRow][adjacentCol];
+          bool isPlayerCell = adjacentCell.state == playerState;
+          bool isAdditionalCell =
+              additionalCells?.contains(adjacentCell) ?? false;
 
-          // Check if the adjacent cell belongs to the same player
-          // AND has not been visited yet
-          if (adjacentCell.state == playerState &&
+          if ((isPlayerCell || isAdditionalCell) &&
               !visited.contains(adjacentCell)) {
             visited.add(adjacentCell);
             queue.add(adjacentCell);
-            connectedCells.add(
-              adjacentCell,
-            ); // Add to the set of connected cells
+            connectedCells.add(adjacentCell);
           }
         }
       }
     }
-
-    return connectedCells; // Return the set of all cells connected to the base
+    return connectedCells;
   }
 
-  // Getters for player scores
   int get player1Score {
     int count = 0;
     for (var row = 0; row < gridHeight; row++) {
@@ -581,4 +408,4 @@ class GameState extends ChangeNotifier {
     }
     return count;
   }
-} // End of GameState class
+}
