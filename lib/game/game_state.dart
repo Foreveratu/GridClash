@@ -249,6 +249,47 @@ class GameState extends ChangeNotifier {
     return false;
   }
 
+  bool _isAdjacentToOwnedForPlayer(int row, int col, Player player) {
+    final playerState = _playerToCellState(player);
+    final adjacentOffsets = [
+      [-1, 0],
+      [1, 0],
+      [0, -1],
+      [0, 1],
+    ];
+    for (var offset in adjacentOffsets) {
+      final adjacentRow = row + offset[0];
+      final adjacentCol = col + offset[1];
+      if (adjacentRow >= 0 &&
+          adjacentRow < gridHeight &&
+          adjacentCol >= 0 &&
+          adjacentCol < gridWidth) {
+        final adjacentCell = grid[adjacentRow][adjacentCol];
+        if (adjacentCell.state == playerState && adjacentCell.isAccessible) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  bool hasValidMoves(Player player) {
+    for (int r = 0; r < gridHeight; r++) {
+      for (int c = 0; c < gridWidth; c++) {
+        final cell = grid[r][c];
+        final opponentState =
+            player.id == 1 ? CellState.player2 : CellState.player1;
+        if ((cell.state == CellState.empty || cell.state == opponentState) &&
+            !cell.isPermanentlyAcquired) {
+          if (_isAdjacentToOwnedForPlayer(r, c, player)) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   CellState _playerToCellState(Player player) {
     return player.id == 1 ? CellState.player1 : CellState.player2;
   }
@@ -305,8 +346,18 @@ class GameState extends ChangeNotifier {
           }
           _updateConnectivity();
           selectedCells.clear();
-          currentPlayer = (currentPlayer.id == 1) ? players[1] : players[0];
-          developer.log('End of turn. Next player: ${currentPlayer.id}');
+          
+          final nextPlayer = (currentPlayer.id == 1) ? players[1] : players[0];
+
+          if (!hasValidMoves(nextPlayer)) {
+            isGameOver = true;
+            winningPlayer = currentPlayer;
+            developer.log(
+                'Player ${nextPlayer.id} is blocked. Player ${currentPlayer.id} WINS!');
+          } else {
+            currentPlayer = nextPlayer;
+            developer.log('End of turn. Next player: ${currentPlayer.id}');
+          }
         }
         notifyListeners();
       }
@@ -339,7 +390,6 @@ class GameState extends ChangeNotifier {
     final visited = <Cell>{};
     final playerState = _playerToCellState(player);
 
-    // Find base cells by searching the grid directly
     for (final row in grid) {
       for (final cell in row) {
         if (cell.isBase &&

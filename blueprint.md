@@ -8,7 +8,9 @@ Ce document décrit le concept, les règles et les aspects techniques d'un jeu d
 
 *   **Grille :** Le jeu se joue sur une grille de 15 cases en largeur et 20 cases en hauteur.
 *   **Bases :** Chaque joueur commence avec une base de 3x3 cases située aléatoirement sur la grille de jeu (par exemple, joueur 1 en bas à gauche, joueur 2 en haut à droite). Les cases de la base sont initialement occupées par le joueur correspondant.
-*   **But du Jeu :** Le but est de capturer les 9 cases de la base adverse. Le joueur qui parvient à capturer toutes les cases de la base ennemie gagne la partie.
+*   **But du Jeu :**
+    *   Le but est de capturer les 9 cases de la base adverse. Le joueur qui parvient à capturer toutes les cases de la base ennemie gagne la partie.
+    *   **Victoire par Blocage :** Si, au début de son tour, un joueur n'a aucune case valide à capturer (c'est-à-dire qu'aucune case vide ou ennemie n'est adjacente à son territoire), il est déclaré "bloqué" et perd immédiatement la partie. Le joueur adverse est alors le vainqueur.
 *   **Tour de Jeu :** À chaque tour, le joueur dont c'est le tour doit sélectionner et capturer 5 cases adjacentes à ses propres cases déjà occupées.
 *   **Premier Tour :** Au tout premier tour de chaque joueur, les 5 cases sélectionnées doivent être adjacentes à l'une des 9 cases de leur base.
 *   **Capture :**
@@ -36,7 +38,6 @@ Ce jeu combine des éléments de placement stratégique et de contrôle de terri
 
 ## Plan de Développement Futur (TODO)
 
-*   Implémenter la condition de victoire (capture de la base adverse).
 *   Affiner l'affichage des cases inaccessibles (résoudre le problème d'opacité ou trouver une alternative).
 *   Clairifier et implémenter le comportement visuel de la croix pour les cases initialement vides qui sont capturées définitivement.
 *   Ajouter une interface utilisateur pour afficher le score (nombre de cases possédées).
