@@ -5,21 +5,40 @@ import 'package:gridclash/game/game_state.dart'; // Import your GameState
 import 'package:gridclash/game_ui.dart'; // Import GameUI
 
 void main() {
-  // Fix 1: Use gridclash package name
   runApp(
-    ChangeNotifierProvider(
-      create: (context) =>
-          GameState(gridWidth: 15, gridHeight: 20), // Provide GameState
-      child: const MyApp(gridWidth: 15, gridHeight: 20),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => GameState(gridWidth: 15, gridHeight: 20),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => ThemeProvider(),
+        ),
+      ],
+      child: const MyApp(),
     ),
   );
 }
 
-class MyApp extends StatelessWidget {
-  final int gridWidth;
-  final int gridHeight;
+class ThemeProvider with ChangeNotifier {
+  ThemeMode _themeMode = ThemeMode.system;
 
-  const MyApp({super.key, required this.gridWidth, required this.gridHeight});
+  ThemeMode get themeMode => _themeMode;
+
+  void toggleTheme() {
+    _themeMode =
+        _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    notifyListeners();
+  }
+
+  void setSystemTheme() {
+    _themeMode = ThemeMode.system;
+    notifyListeners();
+  }
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,10 +46,8 @@ class MyApp extends StatelessWidget {
 
     // Define a common TextTheme
     final TextTheme appTextTheme = TextTheme(
-      displayLarge: GoogleFonts.oswald(
-        fontSize: 57,
-        fontWeight: FontWeight.bold,
-      ),
+      displayLarge:
+          GoogleFonts.oswald(fontSize: 57, fontWeight: FontWeight.bold),
       titleLarge: GoogleFonts.roboto(fontSize: 22, fontWeight: FontWeight.w500),
       bodyMedium: GoogleFonts.openSans(fontSize: 14),
     );
@@ -46,21 +63,18 @@ class MyApp extends StatelessWidget {
       appBarTheme: AppBarTheme(
         backgroundColor: primarySeedColor,
         foregroundColor: Colors.white,
-        titleTextStyle: GoogleFonts.oswald(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-        ),
+        titleTextStyle:
+            GoogleFonts.oswald(fontSize: 24, fontWeight: FontWeight.bold),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           foregroundColor: Colors.white,
           backgroundColor: primarySeedColor,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          textStyle: GoogleFonts.roboto(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          textStyle:
+              GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
     );
@@ -76,34 +90,32 @@ class MyApp extends StatelessWidget {
       appBarTheme: AppBarTheme(
         backgroundColor: Colors.grey[900],
         foregroundColor: Colors.white,
-        titleTextStyle: GoogleFonts.oswald(
-          fontSize: 24,
-          fontWeight: FontWeight.bold,
-        ),
+        titleTextStyle:
+            GoogleFonts.oswald(fontSize: 24, fontWeight: FontWeight.bold),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           foregroundColor: Colors.black,
           backgroundColor: primarySeedColor.shade200,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          textStyle: GoogleFonts.roboto(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
+          textStyle:
+              GoogleFonts.roboto(fontSize: 16, fontWeight: FontWeight.w500),
         ),
       ),
     );
 
-    // Note: Assuming you are using a direct MyHomePage or similar for the home screen
-    // If you have routing set up (e.g., go_router), you would configure routes here
-    return MaterialApp(
-      title: 'Flutter Material AI App',
-      theme: lightTheme,
-      darkTheme: darkTheme,
-      themeMode: ThemeMode
-          .system, // Or Consumer<ThemeProvider>(...) if ThemeProvider is used
-      home: const MyHomePage(), // Assuming your game UI is in MyHomePage
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: 'GridClash',
+          theme: lightTheme,
+          darkTheme: darkTheme,
+          themeMode: themeProvider.themeMode,
+          home: const MyHomePage(),
+        );
+      },
     );
   }
 }
@@ -111,42 +123,47 @@ class MyApp extends StatelessWidget {
 class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key});
 
-  // Dans la méthode build de votre widget principal (ex: MyHomePage)
-
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('GridClash'), // Votre titre
+        title: const Text('GridClash'),
+        actions: [
+          IconButton(
+            icon: Icon(themeProvider.themeMode == ThemeMode.dark
+                ? Icons.light_mode
+                : Icons.dark_mode),
+            onPressed: () => themeProvider.toggleTheme(),
+            tooltip: 'Toggle Theme',
+          ),
+          IconButton(
+            icon: const Icon(Icons.auto_mode),
+            onPressed: () => themeProvider.setSystemTheme(),
+            tooltip: 'Set System Theme',
+          ),
+        ],
       ),
       body: Consumer<GameState>(
-        // Utiliser Consumer pour écouter les changements dans GameState
         builder: (context, gameState, child) {
           if (gameState.isGameOver) {
-            // Si la partie est terminée, afficher l'écran de victoire
             return Center(
-              // Center le contenu
               child: Column(
-                mainAxisAlignment:
-                    MainAxisAlignment.center, // Aligner au centre verticalement
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    // Message de victoire
-                    'Joueur ${gameState.winningPlayer!.id} GAGNE !', // Utiliser le joueur gagnant
+                    'Joueur ${gameState.winningPlayer!.id} GAGNE !',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: gameState
-                          .winningPlayer!
-                          .color, // Utiliser la couleur du joueur gagnant
+                      color: gameState.winningPlayer!.color,
                     ),
                   ),
-                  const SizedBox(height: 20), // Espacement
+                  const SizedBox(height: 20),
                   ElevatedButton(
-                    // Bouton Replay
                     onPressed: () {
-                      gameState
-                          .replayGame(); // Appeler la méthode replay (à créer)
+                      gameState.replayGame();
                     },
                     child: const Text('Rejouer'),
                   ),
@@ -154,8 +171,7 @@ class MyHomePage extends StatelessWidget {
               ),
             );
           } else {
-            // Si la partie n'est pas terminée, afficher la grille de jeu
-            return GameUI(); // Fix 2: Assuming GameUI is a valid widget for the game grid. If not, replace with the correct widget.
+            return GameUI();
           }
         },
       ),
