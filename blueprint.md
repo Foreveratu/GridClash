@@ -36,6 +36,10 @@ Ce jeu combine des éléments de placement stratégique et de contrôle de terri
 *   Logique de connectivité implémentée avec un algorithme de parcours en largeur (BFS).
 *   Affichage de la grille avec `GridView.builder`.
 
+## Règles de Développement
+
+*   **Compilation et Analyse Automatisées :** Après chaque modification de code, ou lors de la reprise du projet, une compilation et une analyse complètes (`flutter analyze`) seront systématiquement effectuées pour identifier et corriger toutes les erreurs et tous les avertissements. Cette pratique garantit la stabilité et la propreté du code à chaque étape du développement.
+
 ## Plan de Développement Futur (TODO)
 
 *   Affiner l'affichage des cases inaccessibles (résoudre le problème d'opacité ou trouver une alternative).

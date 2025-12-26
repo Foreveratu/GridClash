@@ -22,7 +22,7 @@ class GameGrid extends StatelessWidget {
             Color cellColor;
             switch (cell.state) {
               case CellState.empty:
-                cellColor = Colors.grey[300]!;
+                cellColor = Colors.grey.withOpacity(0.2);
                 break;
               case CellState.player1:
                 cellColor =
@@ -52,7 +52,7 @@ class GameGrid extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       border: cell.isAccessible
-                          ? Border.all(color: Colors.black12, width: 0.5)
+                          ? Border.all(color: Colors.black26, width: 0.5)
                           : Border.all(
                               color: Colors.red,
                               width: 2.0,
