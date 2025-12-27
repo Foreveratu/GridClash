@@ -110,7 +110,19 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('GridClash')),
+      appBar: AppBar(
+        toolbarHeight: 48.0,
+        title: Row(
+          children: [
+            Image.asset(
+              'assets/images/icon.png', // Chemin vers votre icône
+              height: 24, // Ajustez la taille selon vos besoins
+            ),
+            const SizedBox(width: 10), // Espace entre l'icône et le titre
+            const Text('GridClash'),
+          ],
+        ),
+      ),
       body: AnimatedBackground(
         vsync: this,
         behaviour: SpaceBehaviour(),
@@ -143,7 +155,7 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                       ),
                     );
                   } else {
-                    return GameUI();
+                    return const GameUI();
                   }
                 },
               ),
