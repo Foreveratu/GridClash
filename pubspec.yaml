@@ -13,6 +13,7 @@ dependencies:
   provider: ^6.1.5+1
   google_fonts: ^6.0.0
   animated_background: ^2.0.0 # Remplacement pour l'animation
+  go_router: ^17.0.0
 
 dev_dependencies:
   flutter_test:

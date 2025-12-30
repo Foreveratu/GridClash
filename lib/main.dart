@@ -1,9 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:gridclash/game/game_state.dart';
 import 'package:gridclash/game_ui.dart';
 import 'package:animated_background/animated_background.dart';
+import 'package:gridclash/rules_screen.dart';
+
+// 1. Définir le routeur
+final GoRouter _router = GoRouter(
+  routes: <RouteBase>[
+    GoRoute(
+      path: '/',
+      builder: (BuildContext context, GoRouterState state) {
+        return const MyHomePage();
+      },
+    ),
+    GoRoute(
+      path: '/rules',
+      builder: (BuildContext context, GoRouterState state) {
+        return const RulesScreen();
+      },
+    ),
+  ],
+);
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -89,12 +109,13 @@ class MyApp extends StatelessWidget {
       ),
     );
 
-    return MaterialApp(
+    // 2. Utiliser MaterialApp.router
+    return MaterialApp.router(
+      routerConfig: _router,
       title: 'GridClash',
       theme: lightTheme,
       darkTheme: darkTheme,
-      themeMode: ThemeMode.system, // Or ThemeMode.light, or ThemeMode.dark
-      home: const MyHomePage(),
+      themeMode: ThemeMode.system,
     );
   }
 }
@@ -115,13 +136,21 @@ class MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
         title: Row(
           children: [
             Image.asset(
-              'assets/images/icon.png', // Chemin vers votre icône
-              height: 24, // Ajustez la taille selon vos besoins
+              'assets/images/icon.png',
+              height: 24,
             ),
-            const SizedBox(width: 10), // Espace entre l'icône et le titre
+            const SizedBox(width: 10),
             const Text('GridClash'),
           ],
         ),
+        // 3. Modifier pour utiliser context.push()
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            tooltip: 'Règles du jeu',
+            onPressed: () => context.push('/rules'),
+          ),
+        ],
       ),
       body: AnimatedBackground(
         vsync: this,

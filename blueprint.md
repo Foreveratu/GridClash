@@ -4,37 +4,46 @@
 
 Ce document décrit le concept, les règles et les aspects techniques d'un jeu de capture de territoire basé sur une grille. Le jeu oppose deux joueurs s'efforçant de conquérir le territoire adverse en capturant des cases adjacentes à leur domaine existant.
 
-## Règles du Jeu
+## Style, Design, et Fonctionnalités Implémentés
 
-*   **Grille :** Le jeu se joue sur une grille de 15 cases en largeur et 20 cases en hauteur.
-*   **Bases :** Chaque joueur commence avec une base de 3x3 cases située aléatoirement sur la grille de jeu (par exemple, joueur 1 en bas à gauche, joueur 2 en haut à droite). Les cases de la base sont initialement occupées par le joueur correspondant.
-*   **But du Jeu :**
-    *   Le but est de capturer les 9 cases de la base adverse. Le joueur qui parvient à capturer toutes les cases de la base ennemie gagne la partie.
-    *   **Victoire par Blocage :** Si, au début de son tour, un joueur n'a aucune case valide à capturer (c'est-à-dire qu'aucune case vide ou ennemie n'est adjacente à son territoire), il est déclaré "bloqué" et perd immédiatement la partie. Le joueur adverse est alors le vainqueur.
-*   **Tour de Jeu :** À chaque tour, le joueur dont c'est le tour doit sélectionner et capturer 5 cases adjacentes à ses propres cases déjà occupées.
-*   **Premier Tour :** Au tout premier tour de chaque joueur, les 5 cases sélectionnées doivent être adjacentes à l'une des 9 cases de leur base.
-*   **Capture :**
-    *   Une case vide adjacente à une case occupée par le joueur peut être capturée.
-    *   Une case déjà occupée par l'adversaire et adjacente à une case occupée par le joueur peut être directement capturée en la sélectionnant. Elle devient alors définitivement la propriété du joueur qui l'a sélectionnée.
-    * Une case définitivement acquise ne peut plus être reprise par le joueur adverse
-*   **Connectivité :** Toutes les cases occupées par un joueur doivent être connectées à sa base principale. Si une ligne de cases n'est plus reliée à la base du joueur (par exemple, si la connexion a été coupée par l'adversaire), le joueur ne peut plus placer de nouvelles cases sur cette ligne déconnectée tant qu'une connexion n'est pas rétablie. Les cases déconnectées sont marquées comme inaccessibles par la logique du jeu.
+*   **Logique de Jeu de Base :**
+    *   Grille de jeu 15x20.
+    *   Bases 3x3 pour chaque joueur.
+    *   Capture de 5 cases par tour.
+    *   Condition de victoire : capturer la base adverse.
+    *   Logique de connectivité pour les territoires.
+*   **Interface Utilisateur (UI) :**
+    *   Grille de jeu visuelle avec `GridView.builder`.
+    *   Affichage de l'état des cases (vide, joueur 1, joueur 2).
+    *   Indicateurs visuels pour :
+        *   Cases sélectionnées temporairement (croix de couleur).
+        *   Cases de base (croix noire).
+        *   Cases capturées définitivement (rond noir).
+        *   Cases inaccessibles (contour rouge, plus claires).
+    *   Écran de fin de partie avec le nom du gagnant et un bouton "Rejouer".
+    *   Fond d'écran animé avec une thématique spatiale.
+*   **Navigation et Aide :**
+    *   **Bouton d'Aide :** Un bouton d'aide (`?`) est présent dans la barre d'application.
+    *   **Écran des Règles :** Le bouton d'aide mène à un écran dédié affichant les règles détaillées du jeu.
+    *   **Navigation :** La navigation entre l'écran de jeu et l'écran des règles est gérée par le package `go_router`, avec un bouton de retour sur l'écran des règles.
+*   **Gestion de l'État :**
+    *   Utilisation de `provider` (`ChangeNotifierProvider`) pour gérer l'état global du jeu (`GameState`).
+*   **Qualité du Code :**
+    *   Le code est formaté et analysé (`flutter analyze`) pour s'assurer qu'il n'y a pas d'erreurs ou d'avertissements.
 
-Ce jeu combine des éléments de placement stratégique et de contrôle de territoire, où la planification et la défense des lignes de connexion sont cruciales.
+## Plan de la modification actuelle
 
-### Affichage et Visuels
-
-*   **Cases Temporairement Sélectionnées :** Pendant le tour d'un joueur, les cases sélectionnées (avant validation des 5 cases) affichent une croix de la couleur du joueur actuel.
-*   **Bases :** Les cases de base sont colorées selon le joueur propriétaire et affichent une croix noire.
-*   **Cases Définitivement Acquises (non-bases ou bases) :** Lorsqu'une case est définitivement capturée (qu'elle était vide ou adverse), son fond prend la couleur du nouveau propriétaire et la croix devient un rond noir.
-*   **Cases Inaccessibles :** Les cases marquées comme inaccessibles (déconnectées de la base) devraient apparaître visuellement plus claires avec un contour rouge.
-
-## Aspects Techniques
-
-*   Développement en Flutter.
-*   Utilisation de Provider pour la gestion de l'état (`GameState`).
-*   Grille représentée par une liste de listes de `Cell` objets.
-*   Logique de connectivité implémentée avec un algorithme de parcours en largeur (BFS).
-*   Affichage de la grille avec `GridView.builder`.
+*   **Objectif :** Ajouter un bouton d'aide pour afficher les règles du jeu.
+*   **Étapes réalisées :**
+    1.  **Ajout de la dépendance `go_router` :** Intégration du package `go_router` pour gérer la navigation.
+    2.  **Création de l'écran des règles :** Un nouveau widget `RulesScreen` a été créé dans `lib/rules_screen.dart` pour afficher le texte des règles du jeu.
+    3.  **Configuration du routeur :**
+        *   Le fichier `lib/main.dart` a été modifié pour utiliser `MaterialApp.router`.
+        *   Un `GoRouter` a été configuré avec deux routes : `/` pour l'écran de jeu principal (`MyHomePage`) et `/rules` pour l'écran des règles (`RulesScreen`).
+    4.  **Ajout du bouton d'aide :** Un `IconButton` avec une icône d'aide a été ajouté à l' `AppBar` de `MyHomePage`.
+    5.  **Navigation :** Le bouton d'aide déclenche la navigation vers `/rules` en utilisant `context.go('/rules')`.
+    6.  **Retour en arrière :** L' `AppBar` de `RulesScreen` contient un bouton de retour qui utilise `context.pop()` pour revenir à l'écran précédent.
+    7.  **Correction et Analyse :** Le code a été analysé et corrigé pour assurer qu'aucune erreur de syntaxe ou d'analyse n'était présente.
 
 ## Règles de Développement
 
@@ -45,6 +54,5 @@ Ce jeu combine des éléments de placement stratégique et de contrôle de terri
 *   Affiner l'affichage des cases inaccessibles (résoudre le problème d'opacité ou trouver une alternative).
 *   Clairifier et implémenter le comportement visuel de la croix pour les cases initialement vides qui sont capturées définitivement.
 *   Ajouter une interface utilisateur pour afficher le score (nombre de cases possédées).
-*   Ajouter la possibilité de recommencer une partie.
 *   Améliorer l'interface utilisateur (esthétique, animations).
 *   Ajouter des sons ou musiques.
