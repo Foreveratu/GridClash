@@ -22,7 +22,8 @@ class GameGrid extends StatelessWidget {
             Color cellColor;
             switch (cell.state) {
               case CellState.empty:
-                cellColor = Colors.grey.withOpacity(0.2);
+                // Utiliser une couleur blanche avec opacité pour un meilleur contraste - Transparence légèrement augmentée
+                cellColor = Colors.white.withAlpha(38); // ~15% opacité
                 break;
               case CellState.player1:
                 cellColor =
@@ -52,7 +53,8 @@ class GameGrid extends StatelessWidget {
                     ),
                     decoration: BoxDecoration(
                       border: cell.isAccessible
-                          ? Border.all(color: Colors.black26, width: 0.5)
+                          // Une bordure plus visible pour la grille
+                          ? Border.all(color: Colors.white.withAlpha(77), width: 0.8) // 30% opacité
                           : Border.all(
                               color: Colors.red,
                               width: 2.0,
